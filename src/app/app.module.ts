@@ -16,8 +16,14 @@ import { CarEditComponent } from './car-edit/car-edit.component';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Routes } from '@angular/router';
 
+import { OktaCallbackComponent, OktaAuthModule } from '@okta/okta-angular';
+
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { AuthInterceptor } from './shared/okta/auth.interceptor';
+import { HomeComponent } from './home/home.component';
+
 const appRoutes: Routes = [
-  { path: '', redirectTo: '/car-list', pathMatch: 'full' },
+  { path: '', redirectTo: '/home', pathMatch: 'full' },
   {
     path: 'car-list',
     component: CarListComponent
@@ -29,14 +35,29 @@ const appRoutes: Routes = [
   {
     path: 'car-edit/:id',
     component: CarEditComponent
+  },
+  {
+    path: 'implicit/callback',
+    component: OktaCallbackComponent
+  },
+  {
+    path: 'home',
+    component: HomeComponent
   }
 ];
+
+const config = {
+  issuer: 'https://dev-820454.oktapreview.com/oauth2/default',
+  redirectUri: 'http://localhost:4200/implicit/callback',
+  clientId: '0oaiyqwc0elO09yJ40h7'
+};
 
 @NgModule({
   declarations: [
     AppComponent,
     CarListComponent,
-    CarEditComponent
+    CarEditComponent,
+    HomeComponent
   ],
   imports: [
     BrowserModule,
@@ -48,9 +69,10 @@ const appRoutes: Routes = [
     MatListModule,
     MatToolbarModule,
     FormsModule,
-    RouterModule.forRoot(appRoutes)
+    RouterModule.forRoot(appRoutes),
+    OktaAuthModule.initAuth(config)
   ],
-  providers: [CarService, GiphyService],
+  providers: [CarService, GiphyService, {provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true}],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
